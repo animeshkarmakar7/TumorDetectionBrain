@@ -6,7 +6,7 @@ from PIL import Image
 import numpy as np
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"  # Replace with your secret key
+app.secret_key = "your_secret_key"  
 model = load_model('D:\\tumour detection\\BrainTumor10EpochsCategorical.h5')
 
 UPLOAD_FOLDER = 'uploads/'
@@ -21,25 +21,25 @@ def model_predict(img_path):
     img = img.resize((64, 64))
     img = np.array(img)
     img = img / 255.0
-    img = np.expand_dims(img, axis=0)  # Expanding to match the input shape of the model (1, 64, 64, 3)
-
-    # Predict the class
+    img = np.expand_dims(img, axis=0)
     result = model.predict(img)
 
-    if result[0][0] > 0.5:
+    # Assuming output is two neurons, result[0][0] -> no tumor, result[0][1] -> tumor
+    if result[0][1] > result[0][0]:
         return "Yes, tumor detected"
     else:
         return "No tumor detected"
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        # Check if the POST request has the file part
+       
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
         file = request.files['file']
-        # If the user does not select a file, the browser submits an empty file without a filename.
+      
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)

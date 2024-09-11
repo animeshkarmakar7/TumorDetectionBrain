@@ -5,7 +5,7 @@ import numpy as np
 
 model=load_model('BrainTumor10EpochsCategorical.h5')
 
-image=cv2.imread('D:\\tumour detection\\pred\\pred5.jpg')
+image=cv2.imread('D:\\tumour detection\\pred\\pred55.jpg')
 
 img=Image.fromarray(image)
 
@@ -20,7 +20,7 @@ img = np.expand_dims(img, axis=0)  # Expanding to match the input shape of the m
 result = model.predict(img)
 
 # For binary classification
-if result[0][0] > 0.5:
+if result[0][1] > result[0][0]:
     print("Yes, tumor detected")
 else:
     print("No tumor detected")
