@@ -1,12 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, request, jsonify
 import os
 import cv2
 from keras.models import load_model
 from PIL import Image
 import numpy as np
+from flask_cors import CORS
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"  
+CORS(app)  
+
+app.secret_key = "your_secret_key"
 model = load_model('D:\\tumour detection\\BrainTumor10EpochsCategorical.h5')
 
 UPLOAD_FOLDER = 'uploads/'
@@ -24,31 +27,24 @@ def model_predict(img_path):
     img = np.expand_dims(img, axis=0)
     result = model.predict(img)
 
-    # Assuming output is two neurons, result[0][0] -> no tumor, result[0][1] -> tumor
     if result[0][1] > result[0][0]:
         return "Yes, tumor detected"
     else:
         return "No tumor detected"
 
+@app.route('/', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['file']
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-       
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-      
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file:
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(file_path)
-            prediction = model_predict(file_path)
-            return render_template('index.html', prediction=prediction)
-    return render_template('index.html')
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    if file:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(file_path)
+        prediction = model_predict(file_path)
+        return jsonify({'prediction': prediction})
 
 if __name__ == '__main__':
     app.run(debug=True)
